@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GestureGuard AI – Control Room</title>
+<style>
+body { font-family: Arial; background: #f0faff; text-align: center; }
+.alert { color: red; font-size: 24px; }
+</style>
+</head>
+
+<body>
+<h1>🚨 GestureGuard AI – Police Dashboard</h1>
+
+<div id="status">Waiting for emergency...</div>
+<img id="img" width="300" style="display:none">
+<p id="location"></p>
+
+<script>
+const SERVER = "http://192.168.1.7:5000";
+
+setInterval(async () => {
+  try {
+    const res = await fetch(SERVER + "/alert");
+    const data = await res.json();
+
+    if (data.status === "FIST_DETECTED") {
+      document.getElementById("status").innerHTML =
+        "🚨 EMERGENCY DETECTED!";
+      document.getElementById("status").className = "alert";
+
+      document.getElementById("img").src =
+        SERVER + "/image?" + Date.now();
+      document.getElementById("img").style.display = "block";
+
+      document.getElementById("location").innerHTML =
+        `<a href="https://maps.google.com/?q=${data.lat},${data.lon}" target="_blank">
+        📍 View Location</a>`;
+    }
+  } catch (e) {
+    document.getElementById("status").innerHTML =
+      "⚠️ Server not reachable";
+  }
+}, 2000);
+</script>
+</body>
+</html>

